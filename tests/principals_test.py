@@ -60,3 +60,44 @@ def test_regrade_assignment(client, h_principal):
 
     assert response.json['data']['state'] == AssignmentStateEnum.GRADED.value
     assert response.json['data']['grade'] == GradeEnum.B
+
+def test_grade_assignment_by_principal(client, h_principal):
+    response = client.post(
+        '/principal/assignments/grade',
+        json={
+            'id': 4,
+            'grade': GradeEnum.B.value
+        },
+        headers=h_principal
+    )
+
+    assert response.status_code == 200
+
+    assert response.json['data']['state'] == AssignmentStateEnum.GRADED.value
+    assert response.json['data']['grade'] == GradeEnum.B
+
+def test_grade_assignment_by_principal_non_existent(client, h_principal):
+    response = client.post(
+        '/principal/assignments/grade',
+        json={
+            'id': 100,
+            'grade': GradeEnum.B.value
+        },
+        headers=h_principal
+    )
+
+    assert response.status_code == 404
+    assert response.json['error'] == 'FyleError'
+
+def test_grade_assignment_by_principal_invalid_state(client, h_principal):
+    response = client.post(
+        '/principal/assignments/grade',
+        json={
+            'id': 2,
+            'grade': GradeEnum.B.value
+        },
+        headers=h_principal
+    )
+
+    assert response.status_code == 400
+    assert response.json['error'] == 'FyleError'

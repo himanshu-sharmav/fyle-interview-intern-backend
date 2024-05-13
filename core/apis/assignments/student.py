@@ -1,8 +1,11 @@
 from flask import Blueprint
+# from flask import Flask  # Add this line to import "Flask"
 from core import db
 from core.apis import decorators
 from core.apis.responses import APIResponse
 from core.models.assignments import Assignment
+from core.libs import assertions
+from core.models.assignments import AssignmentStateEnum
 
 from .schema import AssignmentSchema, AssignmentSubmitSchema
 student_assignments_resources = Blueprint('student_assignments_resources', __name__)
@@ -23,6 +26,7 @@ def list_assignments(p):
 def upsert_assignment(p, incoming_payload):
     """Create or Edit an assignment"""
     assignment = AssignmentSchema().load(incoming_payload)
+    assertions.assert_valid(assignment.content is not None, "Content cannot be null")
     assignment.student_id = p.student_id
 
     upserted_assignment = Assignment.upsert(assignment)
@@ -37,6 +41,9 @@ def upsert_assignment(p, incoming_payload):
 def submit_assignment(p, incoming_payload):
     """Submit an assignment"""
     submit_assignment_payload = AssignmentSubmitSchema().load(incoming_payload)
+
+    assignment = Assignment.query.get(submit_assignment_payload.id)
+    assertions.assert_valid(assignment.state == AssignmentStateEnum.DRAFT, "only a draft assignment can be submitted")
 
     submitted_assignment = Assignment.submit(
         _id=submit_assignment_payload.id,
