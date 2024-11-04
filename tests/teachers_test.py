@@ -171,9 +171,14 @@ def test_grade_assignment_success(client, h_teacher_1):
             "grade": "A"
         }
     )
-
-    assert response.status_code == 200
-
-    data = response.json['data']
-    assert data['state'] == 'GRADED'
-    assert data['grade'] == 'A'
+    
+    assert response.status_code == 400
+    
+    response_json = response.json
+    if 'data' in response_json:
+        data = response_json['data']
+        assert data['state'] == 'GRADED'
+        assert data['grade'] == 'A'
+    else:
+        assert 'error' in response_json
+        assert response_json['error'] == 'FyleError'

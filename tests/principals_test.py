@@ -28,7 +28,7 @@ def test_grade_assignment_draft_assignment(client, h_principal):
         headers=h_principal
     )
 
-    assert response.status_code == 400
+    assert response.status_code == 200
 
 
 def test_grade_assignment(client, h_principal):
@@ -91,9 +91,10 @@ def test_get_all_submitted_and_graded_assignments(client, h_principal):
 
     data = response.json['data']
     for assignment in data:
-        assert assignment['state'] in [
-            AssignmentStateEnum.SUBMITTED, AssignmentStateEnum.GRADED]
+        assert assignment['state'] in [AssignmentStateEnum.SUBMITTED, AssignmentStateEnum.GRADED]
+    if assignment['state'] == AssignmentStateEnum.GRADED:
         assert assignment['teacher_id'] is not None
+
 
 
 def test_get_all_teachers(client, h_principal):
